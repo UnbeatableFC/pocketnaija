@@ -120,7 +120,7 @@ export default function Header() {
           },
         }
       );
-    } catch (err) {
+    } catch {
       toast.error("Network error while signing out", {
         id: "signout-toast",
       });

@@ -7,6 +7,7 @@ import { formatDistanceToNow, isFuture } from 'date-fns'
 import { Input } from '../ui/input'
 import { Card } from '../ui/card'
 import { Button } from '../ui/button'
+import Image from 'next/image'
 
 // Define the Bookmark type for strong typing
 export type Bookmark = {
@@ -144,7 +145,7 @@ export default function BookmarkCard({ bookmark, refresh }: BookmarkCardProps) {
             className="flex items-start group hover:text-primary transition-colors"
           >
             {bookmark.favicon && (
-              <img 
+              <Image 
                 src={bookmark.favicon} 
                 alt="Favicon" 
                 className="w-5 h-5 mr-3 rounded"

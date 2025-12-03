@@ -5,7 +5,9 @@ import { headers } from "next/headers";
 
 // Function to handle authorization check and bookmark retrieval
 async function getAuthorizedBookmark(id: string) {
-  const session = await auth.api.getSession({ headers: await headers() }); // <-- await
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  }); // <-- await
   if (!session) return { unauthorized: true } as const;
 
   const bookmark = await prisma.bookmark.findUnique({
@@ -19,18 +21,31 @@ async function getAuthorizedBookmark(id: string) {
 // PATCH: UPDATE a bookmark
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const check = await getAuthorizedBookmark(params.id);
-  if ("unauthorized" in check)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if ("notFound" in check)
-    return NextResponse.json({ error: "Bookmark not found" }, { status: 404 });
+  // 🔥 Must await the params (React Compiler requirement)
+  const { id } = await context.params;
+
+  const check = await getAuthorizedBookmark(id);
+
+  if ("unauthorized" in check) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
+  }
+
+  if ("notFound" in check) {
+    return NextResponse.json(
+      { error: "Bookmark not found" },
+      { status: 404 }
+    );
+  }
 
   const data = await req.json();
 
   const updatedBookmark = await prisma.bookmark.update({
-    where: { id: params.id },
+    where: { id },
     data: {
       ...data,
       expiresAt:
@@ -47,15 +62,26 @@ export async function PATCH(
 
 // DELETE: DELETE a bookmark
 export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } }
+  request: Request,
+  context: { params: Promise<{ id: string }> }
 ) {
-  const check = await getAuthorizedBookmark(params.id);
-  if ("unauthorized" in check)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if ("notFound" in check)
-    return NextResponse.json({ error: "Bookmark not found" }, { status: 404 });
+  const { id } = await context.params;
 
-  await prisma.bookmark.delete({ where: { id: params.id } });
+  const check = await getAuthorizedBookmark(id);
+
+  if ("unauthorized" in check)
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
+
+  if ("notFound" in check)
+    return NextResponse.json(
+      { error: "Bookmark not found" },
+      { status: 404 }
+    );
+
+  await prisma.bookmark.delete({ where: { id } });
+
   return NextResponse.json({ success: true });
 }

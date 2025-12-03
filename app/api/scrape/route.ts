@@ -26,7 +26,8 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ title, description, image, favicon })
-  } catch (e) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (err) {
     return NextResponse.json({ error: 'Failed to scrape' }, { status: 500 })
   }
 }

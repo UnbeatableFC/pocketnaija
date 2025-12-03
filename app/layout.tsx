@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 // Assuming you have imported and configured your fonts correctly
 import { Geist, Geist_Mono } from "next/font/google"; 
-import { authClient } from '@/lib/auth-client'
+
 
 
 import "./globals.css";

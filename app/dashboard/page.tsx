@@ -98,7 +98,7 @@ export default function Dashboard() {
       toast.success("Metadata fetched successfully!", {
         duration: 2000,
       });
-    } catch (err) {
+    } catch {
       toast.warning(
         "Could not fetch metadata. Please review details manually.",
         { duration: 4000 }

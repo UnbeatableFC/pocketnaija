@@ -1,6 +1,7 @@
 "use client";
 "use client";
-import { useState, FormEvent } from "react";
+import { useState } from "react";
+import { useWatch } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import * as z from "zod"; // Schema validation
@@ -69,7 +70,10 @@ export default function Register() {
   });
 
   // 2. Derive password value for real-time complexity indicator
-  const passwordValue = form.watch("password");
+  const passwordValue = useWatch({
+  control: form.control,
+  name: "password"
+});
 
   // --- Password Strength Indicator Logic ---
   const getPasswordStrength = (password: string): number => {
