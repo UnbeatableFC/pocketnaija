@@ -7,6 +7,7 @@ import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Loader2, AlertCircle } from 'lucide-react'
+import { toast } from 'sonner'
 
 // You might need a simple Alert component for the error message
 // If you don't have one, this is a basic placeholder:
@@ -28,41 +29,64 @@ export default function Login() {
    * Handles form submission and Better Auth signIn logic.
    * Uses try/finally to ensure loading state is always reset.
    */
-  async function handleSignIn(e: FormEvent) {
-    e.preventDefault() // Prevent default form submission
-    
-    // Basic client-side validation check
-    if (!email || !password) {
-      setError('Please enter both email and password.')
-      return
-    }
+ async function handleSignIn(e: FormEvent) {
+  e.preventDefault();
 
-    setLoading(true)
-    setError(null) // Clear previous errors
+  if (!email || !password) {
+    setError("Please enter both email and password.");
+    toast.error("Please enter both email and password.");
+    return;
+  }
 
-    try {
-      await authClient.signIn.email({
+  setLoading(true);
+  setError(null);
+
+  try {
+    await authClient.signIn.email(
+      {
         email,
         password,
-      }, {
-        onSuccess: () => {
-          // Success: Navigate to dashboard
-          router.push('/dashboard')
+      },
+      {
+        onRequest: () => {
+          // Toast enters loading state
+          toast.loading("Signing you in...", {
+            id: "signin-toast",
+          });
         },
+
+        onSuccess: () => {
+          toast.success("Login successful! Redirecting...", {
+            id: "signin-toast",
+          });
+
+          router.push("/dashboard");
+        },
+
         onError: (ctx) => {
-          // Better Auth provides a detailed context on error
-          // We display a user-friendly message
-          const errorMessage = ctx.error.message || 'Login failed. Check your credentials.'
-          setError(errorMessage)
-        }
-      })
-    } catch (e) {
-      // Catch network or unexpected errors
-      setError('An unexpected error occurred during login.')
-    } finally {
-      setLoading(false)
-    }
+          const message =
+            ctx.error?.message || "Login failed. Please try again.";
+
+          setError(message);
+
+          toast.error(message, {
+            id: "signin-toast",
+          });
+        },
+      }
+    );
+  } catch (err) {
+    const message = "A network error occurred. Please try again.";
+
+    setError(message);
+
+    toast.error(message, {
+      id: "signin-toast",
+    });
+  } finally {
+    setLoading(false);
   }
+}
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-50 dark:bg-gray-900">

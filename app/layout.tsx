@@ -9,6 +9,7 @@ import "./globals.css";
 import Header from "@/components/general/Header"; 
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils"; // Import cn utility for cleaner class merging
+import Footer from "@/components/general/Footer";
 
 // --- Font Configuration ---
 // Note: Ensure these local imports are correctly set up or replace with standard Next fonts if Geist isn't configured.
@@ -72,6 +73,7 @@ export default function RootLayout({
           
           {/* 5. Toaster (Sonner) */}
           {/* We can add positioning props for better control */}
+          <Footer />
           <Toaster position="top-right" richColors /> 
        
       </body>

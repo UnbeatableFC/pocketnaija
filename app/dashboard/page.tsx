@@ -1,47 +1,41 @@
-'use client'
-import { useState, useEffect, useRef } from 'react'
-import useSWR from 'swr'
-import axios from 'axios'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner' 
+"use client";
+import { useState, useEffect, useRef } from "react";
+import useSWR from "swr";
+import axios from "axios";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { AxiosError } from "axios";
 
 // Import the authClient instance
-import { authClient } from '@/lib/auth-client'
+import { authClient } from "@/lib/auth-client";
 
-import { Card, CardHeader, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import {
-  Loader2,
-  Plus,
-  CornerDownLeft,
-  Globe,
-  LinkIcon,
-  X,
-} from 'lucide-react'
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Loader2, CornerDownLeft, LinkIcon } from "lucide-react";
 import BookmarkCard, {
   Bookmark,
-} from '@/components/general/BookmarkCard'
+} from "@/components/general/BookmarkCard";
+import MetadataPreview from "@/components/dashboard/MetadataPreview";
 
 // Define the API fetcher
-const fetcher = (url: string) => axios.get(url).then((r) => r.data)
+const fetcher = (url: string) => axios.get(url).then((r) => r.data);
 
 // Define the Metadata type for consistency
 type Metadata = {
-  title: string | null
-  description: string | null
-  image: string | null
-  favicon: string | null
-}
+  title: string | null;
+  description: string | null;
+  image: string | null;
+  favicon: string | null;
+};
 
 export default function Dashboard() {
   // 💡 CORRECTED HOOK USAGE
   const {
     data: session, // The session object (will be null if unauthenticated)
     isPending, // The loading state
-    error, // The error object
-  } = authClient.useSession()
-  const router = useRouter()
+  } = authClient.useSession();
+  const router = useRouter();
 
   // SWR for fetching bookmarks
   const {
@@ -51,91 +45,82 @@ export default function Dashboard() {
     error: swrError,
   } = useSWR<Bookmark[]>(
     // 🔑 UPDATED: Check for the existence of the session object
-    session ? '/api/bookmarks' : null, 
+    session ? "/api/bookmarks" : null,
     fetcher
-  )
-  const bookmarks: Bookmark[] = data || []
+  );
+  const bookmarks: Bookmark[] = data || [];
 
   // State for the Bookmark creation form
-  const [url, setUrl] = useState('')
-  const [metaLoading, setMetaLoading] = useState(false)
-  const [meta, setMeta] = useState<Metadata | null>(null)
-  const [tags, setTags] = useState<string[]>([])
-  const [expiresAt, setExpiresAt] = useState('')
-  const urlInputRef = useRef<HTMLInputElement>(null) // Ref for input focus
-
-  const PRESET_TAGS = [
-    'JAMB',
-    'Scholarship',
-    'Govt Portal',
-    'SME Loan',
-    'Research',
-    'Tech News',
-  ]
+  const [url, setUrl] = useState("");
+  const [metaLoading, setMetaLoading] = useState(false);
+  const [meta, setMeta] = useState<Metadata | null>(null);
+  const [tags, setTags] = useState<string[]>([]);
+  const [expiresAt, setExpiresAt] = useState("");
+  const urlInputRef = useRef<HTMLInputElement>(null); // Ref for input focus
 
   // --- Auth Redirect Effect ---
   useEffect(() => {
     // 🔑 UPDATED: Check if session is NOT pending and session data is null/undefined
     if (!isPending && !session) {
-      toast.warning('You must be logged in to view the dashboard.', {
+      toast.warning("You must be logged in to view the dashboard.", {
         duration: 3000,
-      })
-      router.push('/auth/login')
+      });
+      router.push("/auth/login");
     }
-    
+
     if (swrError) {
       toast.error(
-        'Failed to load bookmarks. Please try refreshing.',
+        "Failed to load bookmarks. Please try refreshing.",
         { duration: 5000 }
-      )
+      );
     }
-  }, [session, isPending, router, swrError])
+  }, [session, isPending, router, swrError]);
 
   // --- Fetch Metadata Logic (Enhanced) ---
   async function fetchMeta(e?: React.FormEvent) {
-    e?.preventDefault() // Handle submission via Enter key
+    e?.preventDefault(); // Handle submission via Enter key
     if (!url) {
-      toast.warning('Please enter a URL first.', { duration: 3000 })
-      return
+      toast.warning("Please enter a URL first.", { duration: 3000 });
+      return;
     }
 
-    setMetaLoading(true)
+    setMetaLoading(true);
     try {
       // Basic URL formatting check before scraping
-      const formattedUrl = url.startsWith('http')
+      const formattedUrl = url.startsWith("http")
         ? url
-        : `https://${url}`
+        : `https://${url}`;
 
-      const res = await axios.post('/api/scrape', {
+      const res = await axios.post("/api/scrape", {
         url: formattedUrl,
-      })
-      setMeta(res.data)
-      toast.success('Metadata fetched successfully!', {
+      });
+      setMeta(res.data);
+      toast.success("Metadata fetched successfully!", {
         duration: 2000,
-      })
-    } catch (e) {
+      });
+    } catch (err) {
       toast.warning(
-        'Could not fetch metadata. Please review details manually.',
+        "Could not fetch metadata. Please review details manually.",
         { duration: 4000 }
-      )
+      );
       setMeta({
         title: url,
         description: null,
         image: null,
         favicon: null,
-      }) // Set minimal data
+      }); // Set minimal data
     } finally {
-      setMetaLoading(false)
+      setMetaLoading(false);
     }
   }
 
   // --- Save Bookmark Logic (Enhanced) ---
   async function save() {
     if (!url || !meta?.title) {
-      toast.error('URL and Title cannot be empty.', {
+      toast.error("URL and Title cannot be empty.", {
         duration: 3000,
-      })
-      return
+      });
+      return;
     }
 
     try {
@@ -147,25 +132,29 @@ export default function Dashboard() {
         favicon: meta.favicon,
         tags: tags,
         expiresAt: expiresAt || null,
-      }
+      };
 
-      await axios.post('/api/bookmarks', payload)
+      await axios.post("/api/bookmarks", payload);
 
       // Reset form states
-      setUrl('')
-      setMeta(null)
-      setTags([])
-      setExpiresAt('')
+      setUrl("");
+      setMeta(null);
+      setTags([]);
+      setExpiresAt("");
 
-      mutate() // Revalidate list immediately
-      toast.success('Bookmark saved to PocketNaija! 🎉', {
+      mutate(); // Revalidate list immediately
+      toast.success("Bookmark saved to PocketNaija! 🎉", {
         duration: 3000,
-      })
-    } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.error ||
-        'Failed to save bookmark due to a server error.'
-      toast.error(errorMessage, { duration: 5000 })
+      });
+    } catch (err: unknown) {
+      let errorMessage =
+        "Failed to save bookmark due to a server error.";
+
+      if (err instanceof AxiosError) {
+        errorMessage = err.response?.data?.error || errorMessage;
+      }
+
+      toast.error(errorMessage, { duration: 5000 });
     }
   }
 
@@ -173,25 +162,27 @@ export default function Dashboard() {
   const toggleTag = (t: string) => {
     setTags((prev) =>
       prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
-    )
-  }
+    );
+  };
 
   const resetForm = () => {
-    setUrl('')
-    setMeta(null)
-    setTags([])
-    setExpiresAt('')
-    urlInputRef.current?.focus()
-  }
+    setUrl("");
+    setMeta(null);
+    setTags([]);
+    setExpiresAt("");
+    urlInputRef.current?.focus();
+  };
 
   // 🔑 UPDATED: Use isPending for the main loading check
   if (isPending || !session) {
     return (
       <div className="text-center p-16 text-muted-foreground">
-        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />{' '}
-        {isPending ? 'Authenticating and loading session...' : 'Redirecting to login...'}
+        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />{" "}
+        {isPending
+          ? "Authenticating and loading session..."
+          : "Redirecting to login..."}
       </div>
-    )
+    );
   }
 
   return (
@@ -231,88 +222,22 @@ export default function Dashboard() {
                 <CornerDownLeft className="h-4 w-4" />
               )}
               <span className="ml-2 hidden sm:inline">
-                {metaLoading ? 'Fetching...' : 'Scrape Data'}
+                {metaLoading ? "Fetching..." : "Scrape Data"}
               </span>
             </Button>
           </form>
 
           {/* Metadata Preview & Customization (Conditional Display) */}
           {meta && (
-            <div className="space-y-4 pt-4 border-t border-dashed animate-in fade-in slide-in-from-top-2">
-              <div className="flex items-center justify-between">
-                <h4 className="font-semibold text-lg text-green-700 dark:text-green-400 flex items-center gap-2">
-                  <Globe className="h-5 w-5" /> Details Found!
-                </h4>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={resetForm}
-                  className="text-muted-foreground hover:text-destructive transition-colors"
-                >
-                  <X className="h-4 w-4 mr-1" /> Clear
-                </Button>
-              </div>
-
-              <div className="border p-4 rounded-lg bg-gray-50 dark:bg-gray-800 space-y-2">
-                <p className="text-sm font-medium">
-                  Title:{' '}
-                  <span className="font-normal">
-                    {meta.title || 'Untitled Link'}
-                  </span>
-                </p>
-                <p className="text-sm font-medium">
-                  Description:{' '}
-                  <span className="font-normal line-clamp-2">
-                    {meta.description || 'No description available.'}
-                  </span>
-                </p>
-                {meta.image && (
-                  <span className="text-xs text-muted-foreground">
-                    Image preview available.
-                  </span>
-                )}
-              </div>
-
-              {/* Tag Selection */}
-              <div className="flex flex-wrap gap-2 py-2 border-y">
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">
-                  Quick Tags:
-                </span>
-                {PRESET_TAGS.map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => toggleTag(t)}
-                    className={`text-xs px-3 py-1 rounded-full border transition duration-150 ${
-                      tags.includes(t)
-                        ? 'bg-primary text-primary-foreground border-primary hover:bg-primary/90 shadow-md'
-                        : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600'
-                    }`}
-                  >
-                    {t}
-                  </button>
-                ))}
-              </div>
-
-              {/* Save Section */}
-              <div className="flex items-center gap-4 pt-2">
-                <span className="text-sm text-muted-foreground whitespace-nowrap">
-                  Optional Deadline:
-                </span>
-                <Input
-                  type="date"
-                  className="w-auto p-2"
-                  value={expiresAt}
-                  onChange={(e) => setExpiresAt(e.target.value)}
-                />
-                <Button
-                  onClick={save}
-                  className="ml-auto bg-green-600 hover:bg-green-700 shadow-lg transition-transform duration-200 hover:scale-[1.02]"
-                  disabled={!meta.title} // Ensure meta is valid before saving
-                >
-                  <Plus className="h-4 w-4 mr-1" /> Finalize & Save
-                </Button>
-              </div>
-            </div>
+            <MetadataPreview
+              description={meta.description}
+              image={meta.image}
+              save={save}
+              resetForm={resetForm}
+              tags={tags}
+              title={meta.title}
+              toggleTag={(t) => toggleTag(t)}
+            />
           )}
         </CardContent>
       </Card>
@@ -327,7 +252,7 @@ export default function Dashboard() {
           {isLoading ? (
             <div className="col-span-2 text-center py-12 text-primary">
               <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-              Fetching data from MongoDB...
+              Saved Bookmarks Loading...
             </div>
           ) : bookmarks.length === 0 ? (
             <div className="col-span-2 p-10 border-2 border-dashed border-gray-300 rounded-xl text-center text-muted-foreground bg-gray-50 animate-in fade-in duration-700">
@@ -348,5 +273,5 @@ export default function Dashboard() {
         </div>
       </div>
     </div>
-  )
+  );
 }

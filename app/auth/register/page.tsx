@@ -1,18 +1,23 @@
-'use client'
-'use client'
-import { useState, FormEvent } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import * as z from 'zod' // Schema validation
-import { useForm } from 'react-hook-form' // Form management
-import { zodResolver } from '@hookform/resolvers/zod' // Zod integration
-import { toast } from 'sonner' // Modern notifications
+"use client";
+"use client";
+import { useState, FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import * as z from "zod"; // Schema validation
+import { useForm } from "react-hook-form"; // Form management
+import { zodResolver } from "@hookform/resolvers/zod"; // Zod integration
+import { toast } from "sonner"; // Modern notifications
 
-import { authClient } from '@/lib/auth-client'
-import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Loader2 } from 'lucide-react'
+import { authClient } from "@/lib/auth-client";
+import {
+  Card,
+  CardHeader,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -20,28 +25,38 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form' // Assuming these Form components exist
+} from "@/components/ui/form"; // Assuming these Form components exist
 
 // --- Zod Validation Schema ---
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
   email: z.string().email("Please enter a valid email address."),
-  password: z.string()
+  password: z
+    .string()
     .min(8, "Password must be at least 8 characters.")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter.")
-    .regex(/[a-z]/, "Password must contain at least one lowercase letter.")
+    .regex(
+      /[A-Z]/,
+      "Password must contain at least one uppercase letter."
+    )
+    .regex(
+      /[a-z]/,
+      "Password must contain at least one lowercase letter."
+    )
     .regex(/[0-9]/, "Password must contain at least one number.")
-    .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character."),
-})
+    .regex(
+      /[^A-Za-z0-9]/,
+      "Password must contain at least one special character."
+    ),
+});
 
-type RegisterFormValues = z.infer<typeof registerSchema>
+type RegisterFormValues = z.infer<typeof registerSchema>;
 
 // Reusing the ErrorAlert component from the Login page
 // Imports from above section...
 
 export default function Register() {
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
   // 1. Initialize React Hook Form
   const form = useForm<RegisterFormValues>({
@@ -51,7 +66,7 @@ export default function Register() {
       email: "",
       password: "",
     },
-  })
+  });
 
   // 2. Derive password value for real-time complexity indicator
   const passwordValue = form.watch("password");
@@ -71,36 +86,44 @@ export default function Register() {
 
   // --- Better Auth Submission Handler ---
   async function onSubmit(values: RegisterFormValues) {
-    setLoading(true)
-    
-    try {
-      await authClient.signUp.email(values, {
-        onSuccess: () => {
-          toast.success("Registration successful! Redirecting to dashboard.", { 
-            duration: 3000, 
-            action: { label: "Dismiss", onClick: () => toast.dismiss() }
+    setLoading(true);
+
+     await authClient.signUp.email(
+      {
+        email: values.email,
+        password: values.password,
+        name: values.name,
+        callbackURL: "/dashboard",
+      },
+      {
+        onRequest: () => {
+          toast.loading("Creating your account...", {
+            id: "signup-toast",
           });
-          router.push('/dashboard')
         },
+
+        onSuccess: () => {
+          toast.success("Account created successfully!", {
+            id: "signup-toast",
+          });
+
+          router.push("/dashboard");
+        },
+
         onError: (ctx) => {
-          const errorMessage = ctx.error.message || 'Registration failed. Please check the details and try again.'
-          toast.error(errorMessage, { 
-            duration: 5000,
-            action: { label: "Dismiss", onClick: () => toast.dismiss() }
-          })
-        }
-      })
-    } catch (e) {
-      toast.error('A network error occurred. Please try again.', { duration: 5000 })
-    } finally {
-      setLoading(false)
-    }
+          toast.error(ctx.error.message, {
+            id: "signup-toast",
+          });
+        },
+      }
+    );
+
+    setLoading(false);
   }
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
       <Card className="p-8 w-full max-w-md space-y-6 shadow-2xl animate-in fade-in zoom-in duration-500">
-        
         <CardHeader className="text-center space-y-2">
           <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">
             Get Started with PocketNaija ✨
@@ -109,12 +132,14 @@ export default function Register() {
             Create your account to secure your valuable links.
           </p>
         </CardHeader>
-        
+
         {/* 3. Use the Form component from shadcn/ui/Radix */}
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-6"
+          >
             <CardContent className="space-y-5 p-0">
-              
               {/* Name Field */}
               <FormField
                 control={form.control}
@@ -143,7 +168,9 @@ export default function Register() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel htmlFor="email">Email Address</FormLabel>
+                    <FormLabel htmlFor="email">
+                      Email Address
+                    </FormLabel>
                     <FormControl>
                       <Input
                         id="email"
@@ -158,7 +185,7 @@ export default function Register() {
                   </FormItem>
                 )}
               />
-              
+
               {/* Password Field */}
               <FormField
                 control={form.control}
@@ -181,15 +208,32 @@ export default function Register() {
                       <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
                         <div
                           className={`h-full transition-all duration-300`}
-                          style={{ 
+                          style={{
                             width: `${strength * 20}%`,
-                            backgroundColor: strength < 3 ? 'red' : strength < 5 ? 'orange' : 'green' 
+                            backgroundColor:
+                              strength < 3
+                                ? "red"
+                                : strength < 5
+                                ? "orange"
+                                : "green",
                           }}
                         />
                       </div>
                       {passwordValue.length > 0 && (
-                        <p className={`text-xs mt-1 ${strength < 3 ? 'text-red-500' : strength < 5 ? 'text-orange-500' : 'text-green-500'}`}>
-                          {strength < 3 ? 'Weak' : strength < 5 ? 'Medium' : 'Strong'}
+                        <p
+                          className={`text-xs mt-1 ${
+                            strength < 3
+                              ? "text-red-500"
+                              : strength < 5
+                              ? "text-orange-500"
+                              : "text-green-500"
+                          }`}
+                        >
+                          {strength < 3
+                            ? "Weak"
+                            : strength < 5
+                            ? "Medium"
+                            : "Strong"}
                         </p>
                       )}
                     </div>
@@ -197,12 +241,11 @@ export default function Register() {
                   </FormItem>
                 )}
               />
-
             </CardContent>
 
             <CardFooter className="flex flex-col gap-3 p-0 pt-4">
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full text-base py-6 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
                 disabled={loading || !form.formState.isValid} // Disable if loading or form is invalid
               >
@@ -212,13 +255,16 @@ export default function Register() {
                     Creating Account...
                   </>
                 ) : (
-                  'Sign Up'
+                  "Sign Up"
                 )}
               </Button>
-              
+
               <p className="text-center text-sm text-muted-foreground">
-                Already have an account?{' '}
-                <Link href="/auth/login" className="font-semibold text-primary hover:underline transition-colors">
+                Already have an account?{" "}
+                <Link
+                  href="/auth/login"
+                  className="font-semibold text-primary hover:underline transition-colors"
+                >
                   Log In
                 </Link>
               </p>
@@ -227,5 +273,5 @@ export default function Register() {
         </Form>
       </Card>
     </div>
-  )
+  );
 }

@@ -7,21 +7,21 @@ export const testimonials = [
       "PocketNaija changed how I study! Hundreds of links used to overwhelm me. This tool is a lifesaver!",
     name: "Aisha T.",
     title: "Software Engineer",
-    avatarUrl: "https://placehold.co/40x40/10B981/FFFFFF?text=AT",
+    avatarUrl: "/female.jpg",
   },
   {
     quote:
       "As a developer, bookmarking hundreds of links a month is easy. PocketNaija helps me categorize and recall them quickly.",
     name: "Seun O.",
     title: "Data Analyst",
-    avatarUrl: "https://placehold.co/40x40/EF4444/FFFFFF?text=SO",
+    avatarUrl: "/male1.jpg",
   },
   {
     quote:
       "Found three scholarships thanks to the deadline reminders. Essential tool for every Nigerian student and builder.",
     name: "Chijioke E.",
     title: "Business Student",
-    avatarUrl: "https://placehold.co/40x40/FBBF24/FFFFFF?text=CE",
+    avatarUrl: "/male2.jpg",
   },
 ];
 
@@ -58,3 +58,12 @@ export const trustLogos = [
     ),
   },
 ];
+
+ export const PRESET_TAGS = [
+    'JAMB',
+    'Scholarship',
+    'Govt Portal',
+    'SME Loan',
+    'Research',
+    'Tech News',
+  ]

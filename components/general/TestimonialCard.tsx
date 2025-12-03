@@ -1,19 +1,55 @@
+import { Star, Quote } from "lucide-react";
+import { Card, CardContent } from "../ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Testimonial } from "@/app/types/types";
 
-export const TestimonialCard = ({ quote, name, title, avatarUrl }  :Testimonial) => (
-    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-2xl transition duration-300 transform hover:scale-[1.02] border border-gray-100 dark:border-gray-700 h-full flex flex-col justify-between">
-        <p className="text-gray-700 dark:text-gray-300 italic mb-4">&ldquo;{quote}&ldquo;</p>
-        <div className="flex items-center mt-auto">
-            <img 
-                src={avatarUrl || `https://placehold.co/40x40/4F46E5/FFFFFF?text=${name.charAt(0)}`} 
-                alt={name} 
-                className="w-10 h-10 rounded-full object-cover mr-3 ring-2 ring-primary/50"
-                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = `https://placehold.co/40x40/4F46E5/FFFFFF?text=${name.charAt(0)}` }}
-            />
-            <div>
-                <p className="font-semibold text-gray-900 dark:text-white">{name}</p>
-                <p className="text-sm text-primary-500 text-primary">{title}</p>
-            </div>
+export const TestimonialCard = ({
+  quote,
+  name,
+  title,
+  avatarUrl,
+}: Testimonial) => {
+  return (
+    <Card className="h-full flex flex-col justify-between transform hover:scale-[1.03] hover:shadow-2xl dark:hover:shadow-primary/20">
+      {/* Header / Rating (Adding a visual element) */}
+      <div className="p-6 pb-2">
+        <div className="flex items-center gap-1 mb-3">
+          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
         </div>
-    </div>
-);
+        {/* Quote Icon */}
+        <Quote className="w-6 h-6 text-primary/50 dark:text-primary/30 mb-2 transform rotate-180" />
+      </div>
+
+      {/* Content: The Quote */}
+      <CardContent className="grow">
+        <p className="text-xl font-medium text-gray-800 dark:text-gray-100 leading-relaxed italic">
+          {quote}
+        </p>
+      </CardContent>
+
+      {/* Footer: Author Info */}
+      <div className="p-6 pt-4 border-t border-gray-100 dark:border-gray-700 mt-auto">
+        <div className="flex items-center">
+          <Avatar className="w-10 h-10">
+            <AvatarImage src={avatarUrl} alt={name} className="object-cover" />
+            <AvatarFallback className="bg-linear-to-br from-primary to-secondary text-white">
+              {name?.charAt(0)?.toUpperCase() || "U"}
+            </AvatarFallback>
+          </Avatar>
+          <div className="ml-4">
+            <p className="font-semibold text-lg text-gray-900 dark:text-white leading-tight">
+              {name}
+            </p>
+            <p className="text-sm text-primary/70 dark:text-primary/50">
+              {title}
+            </p>
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+};
